@@ -41,10 +41,8 @@ int sentptr;
 Sentence sentlist[MAXSENT];
 int nextvar;
 
+/* Function prototypes */
 int Unify(int sent1, int sent2);
-
-void ShowSentence(int index);
-void PrintResolutionPath(int sent1, int sent2);
 
 /* Returns true if the parameter is a constant */
 int constant(Parameter param) {
@@ -93,14 +91,9 @@ void Standardize(char param[MAXPRED][MAXPARAM][16], Parameter sparam[MAXPRED][MA
    for(j=0; j<MAXPARAM; j++) {
       i = pred[k];
       if(param[k][j][0] == '\0') continue;
-      else if(isupper(param[k][j][0])) {
-          // Constants should be stored as constants
-          strcpy(sparam[k][j].con, param[k][j]);
-          sparam[k][j].var = 0;  // Ensure var is 0 for constants
-      }
+      /*else if(isupper(param[k][j][0])) strcpy(sparam[i][j].con,param[k][j]);*/
+      else if(isupper(param[k][j][0])) strcpy(sparam[k][j].con,param[k][j]);
       else {
-         // Variables should have empty con field
-         sparam[k][j].con[0] = '\0';
          if(sub[(unsigned char) param[k][j][0]] == -1) {
             sub[(unsigned char) param[k][j][0]] = nextvar;
             sparam[k][j].var = nextvar;
@@ -266,350 +259,354 @@ void AddKBSentence(void) {
    StringToSentence(sent);
 }
 
-/* Helper function to check if two sentences can be resolved */
-int canResolve(int sent1, int sent2) {
-    return Unify(sent1, sent2);
-}
+/* You must write this function */
+void RandomResolve()
+{
+   clock_t start = clock();
+   rTime = 0.0;
+   rSteps = 0;
+   int sent_generated = 0;
+   int initial_sentptr = sentptr;
 
-/* RandomResolve implementation */
-void RandomResolve() {
-    clock_t start = clock();
-    rSteps = 0;
-    int maxAttempts = 1000;  // Prevent infinite loops
-    
-    while (rSteps < maxAttempts) {
-        // Randomly select two sentences
-        int s1 = rand() % sentptr;
-        int s2 = rand() % sentptr;
-        
-        if (s1 != s2 && canResolve(s1, s2)) {
-            rSteps++;
-            // If one sentence is from refuted part and other isn't, we found a potential path
-            if (sentlist[s1].refutePart != sentlist[s2].refutePart) {
-                break;
+   printf("\nRunning Random Resolve (press Ctrl-c to cancel)...\n");
+
+   while (sentptr < MAXSENT) {
+      // Randomly select two sentences
+      int sent1 = rand() % sentptr;
+      int sent2 = rand() % sentptr;
+
+      // Skip if same sentence
+      if (sent1 == sent2) continue;
+
+      // Try to unify and resolve
+      if (Unify(sent1, sent2)) {
+         rSteps++;
+         sent_generated++;
+
+         // Print the selected sentences
+         printf("    %d:                               ", sent1);
+         for (int i = 0; i < sentlist[sent1].num_pred; i++) {
+            if (sentlist[sent1].neg[i]) printf("!");
+            printf("%s(", predlist[sentlist[sent1].pred[i]].name);
+            for (int j = 0; j < predlist[sentlist[sent1].pred[i]].numparam; j++) {
+               if (constant(sentlist[sent1].param[i][j])) 
+                  printf("%s", sentlist[sent1].param[i][j].con);
+               else 
+                  printf("%c", 'a' + (unsigned char)sentlist[sent1].param[i][j].var % 26);
+               if (j < predlist[sentlist[sent1].pred[i]].numparam - 1) printf(",");
             }
-        }
-    }
-    
-    rTime = ((double)(clock() - start)) / CLOCKS_PER_SEC;
+            printf(") ");
+         }
+         printf("\n");
+
+         printf("    %d:                               ", sent2);
+         for (int i = 0; i < sentlist[sent2].num_pred; i++) {
+            if (sentlist[sent2].neg[i]) printf("!");
+            printf("%s(", predlist[sentlist[sent2].pred[i]].name);
+            for (int j = 0; j < predlist[sentlist[sent2].pred[i]].numparam; j++) {
+               if (constant(sentlist[sent2].param[i][j])) 
+                  printf("%s", sentlist[sent2].param[i][j].con);
+               else 
+                  printf("%c", 'a' + (unsigned char)sentlist[sent2].param[i][j].var % 26);
+               if (j < predlist[sentlist[sent2].pred[i]].numparam - 1) printf(",");
+            }
+            printf(") ");
+         }
+         printf("\n--\n");
+
+         // Check if we found a contradiction
+         if (sentlist[sentptr-1].num_pred == 0) {
+            printf("Sentences %d and %d Complete the Proof!\n", sent1, sent2);
+            break;
+         }
+      }
+   }
+
+   if (sentptr >= MAXSENT) {
+      printf("FAILED to resolve! KB is FULL.\n");
+   } else if (sentptr == initial_sentptr) {
+      printf("FAILED to resolve! There are no more possible resolutions.\n");
+   }
+
+   rTime = (double)(clock() - start) / CLOCKS_PER_SEC;
+   printf("RandomResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", sent_generated, rSteps, rTime);
 }
 
-/* HeuristicResolve implementation using set-of-support strategy */
+/* You must write this function */
 void HeuristicResolve() {
     clock_t start = clock();
+    hTime = 0.0;
     hSteps = 0;
-    
-    // Set of support strategy: Start with sentences from refuted part
-    for (int i = 0; i < sentptr && hSteps < 1000; i++) {
-        if (sentlist[i].refutePart) {
-            // Try to resolve with non-refuted sentences first
-            for (int j = 0; j < sentptr; j++) {
-                if (!sentlist[j].refutePart && canResolve(i, j)) {
-                    hSteps++;
-                    // Found a potential resolution path
-                    if (hSteps > 0) {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    
-    hTime = ((double)(clock() - start)) / CLOCKS_PER_SEC;
-}
+    int sent_generated = 0;
+    int initial_sentptr = sentptr;
 
-/* Structure to track resolution steps */
-typedef struct {
-    int parent1;
-    int parent2;
-    int resolvedPred1;
-    int resolvedPred2;
-    Sentence result;
-} ResolutionStep;
+    // Track both tried pairs and failed unification attempts
+    int tried[MAXSENT][MAXSENT] = {0};
+    int failed_unify[MAXSENT][MAXSENT] = {0};
 
-ResolutionStep steps[MAXSENT];
-int stepCount = 0;
+    printf("\nRunning Heuristic Resolve...\n");
+    
+    while (sentptr < MAXSENT) {
+        int best_sent1 = -1;
+        int best_sent2 = -1;
+        int best_score = -1;
 
-/* Create a new resolved sentence from two parent sentences */
-Sentence resolveSentences(int sent1, int sent2, int pred1, int pred2) {
-    Sentence newSent;
-    memset(&newSent, 0, sizeof(Sentence));
-    
-    // Create substitution map
-    int varMap[MAXSUB] = {0};
-    int nextNewVar = nextvar;
-    
-    // Build substitution map
-    for (int k = 0; k < predlist[sentlist[sent1].pred[pred1]].numparam; k++) {
-        Parameter p1 = sentlist[sent1].param[pred1][k];
-        Parameter p2 = sentlist[sent2].param[pred2][k];
-        
-        if (variable(p1) && constant(p2)) {
-            varMap[p1.var] = -(k + 1);
-            strcpy(newSent.param[0][k].con, p2.con);
-        } else if (constant(p1) && variable(p2)) {
-            varMap[p2.var] = k + 1;
-            strcpy(newSent.param[0][k].con, p1.con);
-        } else if (variable(p1) && variable(p2)) {
-            if (varMap[p1.var] == 0 && varMap[p2.var] == 0) {
-                varMap[p1.var] = nextNewVar;
-                varMap[p2.var] = nextNewVar;
-                nextNewVar++;
-            }
-        }
-    }
-    
-    // Copy predicates from both sentences except resolved ones
-    int newPredCount = 0;
-    
-    // Copy from sent1
-    for (int i = 0; i < sentlist[sent1].num_pred; i++) {
-        if (i != pred1) {
-            newSent.pred[newPredCount] = sentlist[sent1].pred[i];
-            newSent.neg[newPredCount] = sentlist[sent1].neg[i];
-            
-            // Apply substitutions
-            for (int k = 0; k < predlist[sentlist[sent1].pred[i]].numparam; k++) {
-                Parameter p = sentlist[sent1].param[i][k];
-                if (variable(p) && varMap[p.var] != 0) {
-                    if (varMap[p.var] < 0) {
-                        // Map to constant
-                        strcpy(newSent.param[newPredCount][k].con, 
-                               sentlist[sent2].param[pred2][-varMap[p.var]-1].con);
-                        newSent.param[newPredCount][k].var = 0;
-                    } else {
-                        // Map to new variable
-                        newSent.param[newPredCount][k].var = varMap[p.var];
-                        newSent.param[newPredCount][k].con[0] = '\0';
-                    }
-                } else {
-                    newSent.param[newPredCount][k] = p;
-                }
-            }
-            newPredCount++;
-        }
-    }
-    
-    // Copy from sent2 (similar logic for sent2)
-    for (int i = 0; i < sentlist[sent2].num_pred; i++) {
-        if (i != pred2) {
-            newSent.pred[newPredCount] = sentlist[sent2].pred[i];
-            newSent.neg[newPredCount] = sentlist[sent2].neg[i];
-            
-            for (int k = 0; k < predlist[sentlist[sent2].pred[i]].numparam; k++) {
-                Parameter p = sentlist[sent2].param[i][k];
-                if (variable(p) && varMap[p.var] != 0) {
-                    if (varMap[p.var] < 0) {
-                        strcpy(newSent.param[newPredCount][k].con, 
-                               sentlist[sent1].param[pred1][-varMap[p.var]-1].con);
-                        newSent.param[newPredCount][k].var = 0;
-                    } else {
-                        newSent.param[newPredCount][k].var = varMap[p.var];
-                        newSent.param[newPredCount][k].con[0] = '\0';
-                    }
-                } else {
-                    newSent.param[newPredCount][k] = p;
-                }
-            }
-            newPredCount++;
-        }
-    }
-    
-    newSent.num_pred = newPredCount;
-    nextvar = nextNewVar;
-    return newSent;
-}
+        // Find the best pair of sentences to resolve
+        for (int i = 0; i < sentptr; i++) {
+            for (int j = i + 1; j < sentptr; j++) {
+                // Skip if we've already tried this pair or if unification failed before
+                if (tried[i][j] || failed_unify[i][j]) continue;
 
-/* Main resolution function */
-void Resolve() {
-    stepCount = 0;
-    int contradiction = 0;
-    int maxSteps = 100;  // Limit steps to prevent infinite loops
-    
-    printf("\nStarting Resolution Process:\n");
-    printf("---------------------------\n");
-    fflush(stdout);
-    
-    // Start with sentences from refuted part
-    for(int i = 0; i < sentptr && !contradiction && stepCount < maxSteps; i++) {
-        if(sentlist[i].refutePart) {
-            printf("\nTrying to resolve with sentence %d: ", i);
-            ShowSentence(i);
-            
-            for(int j = 0; j < sentptr && !contradiction; j++) {
-                if(i == j) continue;
+                int score = 0;
+                int has_complement = 0;
+                int matching_constants = 0;
+                int total_predicates = sentlist[i].num_pred + sentlist[j].num_pred;
                 
-                // Try to resolve these sentences
-                for(int pred1 = 0; pred1 < sentlist[i].num_pred; pred1++) {
-                    for(int pred2 = 0; pred2 < sentlist[j].num_pred; pred2++) {
-                        if(sentlist[i].pred[pred1] == sentlist[j].pred[pred2] && 
-                           sentlist[i].neg[pred1] != sentlist[j].neg[pred2]) {
-                            
-                            // Check if parameters can be unified
-                            int canUnify = 1;
-                            for(int k = 0; k < predlist[sentlist[i].pred[pred1]].numparam; k++) {
-                                Parameter p1 = sentlist[i].param[pred1][k];
-                                Parameter p2 = sentlist[j].param[pred2][k];
-                                
-                                // If both are constants, they must match exactly
-                                if(constant(p1) && constant(p2)) {
-                                    if(strcmp(p1.con, p2.con) != 0) {
-                                        canUnify = 0;
-                                        break;
+                // Heavy priority for refuted part involvement
+                if (sentlist[i].refutePart || sentlist[j].refutePart) 
+                    score += 20;
+
+                // Check for complementary predicates and matching constants
+                for (int pi = 0; pi < sentlist[i].num_pred; pi++) {
+                    for (int pj = 0; pj < sentlist[j].num_pred; pj++) {
+                        if (sentlist[i].pred[pi] == sentlist[j].pred[pj]) {
+                            // Check for complementary predicates
+                            if (sentlist[i].neg[pi] != sentlist[j].neg[pj]) {
+                                has_complement = 1;
+                                score += 10;  // Increased from 5
+
+                                // Check for matching constants
+                                for (int k = 0; k < predlist[sentlist[i].pred[pi]].numparam; k++) {
+                                    Parameter param1 = sentlist[i].param[pi][k];
+                                    Parameter param2 = sentlist[j].param[pj][k];
+                                    if (constant(param1) && constant(param2)) {
+                                        if (strcmp(param1.con, param2.con) == 0) {
+                                            matching_constants++;
+                                            score += 5;  // Bonus for matching constants
+                                        } else {
+                                            score -= 10;  // Penalty for mismatched constants
+                                        }
                                     }
                                 }
                             }
-                            
-                            if(!canUnify) continue;
-                            
-                            printf("\nResolution Step %d:\n", stepCount + 1);
-                            printf("Resolving sentences:\n");
-                            printf("  Sentence %d: ", i);
-                            ShowSentence(i);
-                            printf("  Sentence %d: ", j);
-                            ShowSentence(j);
-                            
-                            // Create resolved sentence
-                            Sentence newSent = resolveSentences(i, j, pred1, pred2);
-                            
-                            // Check if resolution was valid
-                            if(newSent.num_pred == -1) continue;
-                            
-                            // Add the resolved sentence to KB
-                            sentlist[sentptr] = newSent;
-                            sentlist[sentptr].refutePart = 1;
-                            
-                            printf("  Resolved Result: ");
-                            ShowSentence(sentptr);
-                            
-                            // Check if we found a contradiction (empty clause)
-                            if(newSent.num_pred == 0) {
-                                printf("\nContradiction found! Proof complete.\n");
-                                printf("Final Resolution Path:\n");
-                                PrintResolutionPath(i, j);
-                                contradiction = 1;
-                                break;
-                            }
-                            
-                            sentptr++;
-                            stepCount++;
                         }
                     }
-                    if(contradiction) break;
+                }
+
+                // Only consider pairs with complementary predicates
+                if (!has_complement) continue;
+
+                // Prioritize shorter sentences more aggressively
+                score += 3 * (20 - total_predicates);
+
+                // Bonus for sentences that are likely to lead to empty clause
+                if (total_predicates <= 3) score += 15;
+                
+                // Extra bonus for pairs where one sentence has only one predicate
+                if (sentlist[i].num_pred == 1 || sentlist[j].num_pred == 1)
+                    score += 10;
+
+                if (score > best_score) {
+                    best_score = score;
+                    best_sent1 = i;
+                    best_sent2 = j;
+                }
+            }
+        }
+
+        // If no good candidates found, break
+        if (best_score < 0) break;
+
+        // Mark this pair as tried
+        tried[best_sent1][best_sent2] = 1;
+
+        // Try to unify the best candidates
+        if (Unify(best_sent1, best_sent2)) {
+            hSteps++;
+            sent_generated++;
+
+            // Print the selected sentences
+            printf("    %d:                               ", best_sent1);
+            for (int i = 0; i < sentlist[best_sent1].num_pred; i++) {
+                if (sentlist[best_sent1].neg[i]) printf("!");
+                printf("%s(", predlist[sentlist[best_sent1].pred[i]].name);
+                for (int j = 0; j < predlist[sentlist[best_sent1].pred[i]].numparam; j++) {
+                    if (constant(sentlist[best_sent1].param[i][j])) 
+                        printf("%s", sentlist[best_sent1].param[i][j].con);
+                    else 
+                        printf("%c", 'a' + (unsigned char)sentlist[best_sent1].param[i][j].var % 26);
+                    if (j < predlist[sentlist[best_sent1].pred[i]].numparam - 1) printf(",");
+                }
+                printf(") ");
+            }
+            printf("\n");
+
+            printf("    %d:                               ", best_sent2);
+            for (int i = 0; i < sentlist[best_sent2].num_pred; i++) {
+                if (sentlist[best_sent2].neg[i]) printf("!");
+                printf("%s(", predlist[sentlist[best_sent2].pred[i]].name);
+                for (int j = 0; j < predlist[sentlist[best_sent2].pred[i]].numparam; j++) {
+                    if (constant(sentlist[best_sent2].param[i][j])) 
+                        printf("%s", sentlist[best_sent2].param[i][j].con);
+                    else 
+                        printf("%c", 'a' + (unsigned char)sentlist[best_sent2].param[i][j].var % 26);
+                    if (j < predlist[sentlist[best_sent2].pred[i]].numparam - 1) printf(",");
+                }
+                printf(") ");
+            }
+            printf("\n--\n");
+
+            // Check if we found a contradiction
+            if (sentlist[sentptr-1].num_pred == 0) {
+                printf("Sentences %d and %d Complete the Proof!\n", best_sent1, best_sent2);
+                break;
+            }
+        } else {
+            // Mark this pair as failed unification
+            failed_unify[best_sent1][best_sent2] = 1;
+        }
+    }
+
+    if (sentptr >= MAXSENT) {
+        printf("FAILED to resolve! KB is FULL.\n");
+    } else if (sentptr == initial_sentptr) {
+        printf("FAILED to resolve! There are no more possible resolutions.\n");
+    }
+
+    hTime = (double)(clock() - start) / CLOCKS_PER_SEC;
+    printf("HeuristicResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", 
+           sent_generated, hSteps, hTime);
+}
+
+/* You must write this function */
+int Unify(int sent1, int sent2) {
+    // For each predicate in sent1
+    for (int i = 0; i < sentlist[sent1].num_pred; i++) {
+        int pred1 = sentlist[sent1].pred[i];
+        int neg1 = sentlist[sent1].neg[i];
+        
+        // For each predicate in sent2
+        for (int j = 0; j < sentlist[sent2].num_pred; j++) {
+            int pred2 = sentlist[sent2].pred[j];
+            int neg2 = sentlist[sent2].neg[j];
+            
+            // Check if predicates match and have opposite signs
+            if (pred1 == pred2 && neg1 != neg2) {
+                // Check if parameters can be unified
+                int can_unify = 1;
+                Parameter substitutions[MAXSUB];
+                int num_subs = 0;
+                
+                // Try to unify parameters
+                for (int k = 0; k < predlist[pred1].numparam; k++) {
+                    Parameter param1 = sentlist[sent1].param[i][k];
+                    Parameter param2 = sentlist[sent2].param[j][k];
+                    
+                    // If both are constants, they must be equal
+                    if (constant(param1) && constant(param2)) {
+                        if (strcmp(param1.con, param2.con) != 0) {
+                            can_unify = 0;
+                            break;
+                        }
+                    }
+                    // If one is constant and one is variable, add substitution
+                    else if (constant(param1) && variable(param2)) {
+                        substitutions[num_subs] = param1;
+                        substitutions[num_subs].var = param2.var;
+                        num_subs++;
+                    }
+                    else if (variable(param1) && constant(param2)) {
+                        substitutions[num_subs] = param2;
+                        substitutions[num_subs].var = param1.var;
+                        num_subs++;
+                    }
+                    // If both are variables, add substitution
+                    else if (variable(param1) && variable(param2)) {
+                        substitutions[num_subs].con[0] = '\0';
+                        substitutions[num_subs].var = param2.var;
+                        num_subs++;
+                        param2.var = param1.var;
+                    }
+                }
+                
+                if (can_unify) {
+                    // Create new sentence with remaining predicates
+                    Sentence new_sent;
+                    new_sent.num_pred = 0;
+                    new_sent.refutePart = sentlist[sent1].refutePart || sentlist[sent2].refutePart;
+                    
+                    // Add predicates from sent1 except the unified one
+                    for (int k = 0; k < sentlist[sent1].num_pred; k++) {
+                        if (k != i) {
+                            new_sent.pred[new_sent.num_pred] = sentlist[sent1].pred[k];
+                            new_sent.neg[new_sent.num_pred] = sentlist[sent1].neg[k];
+                            for (int p = 0; p < predlist[sentlist[sent1].pred[k]].numparam; p++) {
+                                new_sent.param[new_sent.num_pred][p] = sentlist[sent1].param[k][p];
+                                // Apply substitutions
+                                if (variable(new_sent.param[new_sent.num_pred][p])) {
+                                    for (int s = 0; s < num_subs; s++) {
+                                        if (new_sent.param[new_sent.num_pred][p].var == substitutions[s].var) {
+                                            if (substitutions[s].con[0] != '\0')
+                                                strcpy(new_sent.param[new_sent.num_pred][p].con, substitutions[s].con);
+                                            else
+                                                new_sent.param[new_sent.num_pred][p].var = substitutions[s].var;
+                                        }
+                                    }
+                                }
+                            }
+                            new_sent.num_pred++;
+                        }
+                    }
+                    
+                    // Add predicates from sent2 except the unified one
+                    for (int k = 0; k < sentlist[sent2].num_pred; k++) {
+                        if (k != j) {
+                            new_sent.pred[new_sent.num_pred] = sentlist[sent2].pred[k];
+                            new_sent.neg[new_sent.num_pred] = sentlist[sent2].neg[k];
+                            for (int p = 0; p < predlist[sentlist[sent2].pred[k]].numparam; p++) {
+                                new_sent.param[new_sent.num_pred][p] = sentlist[sent2].param[k][p];
+                                // Apply substitutions
+                                if (variable(new_sent.param[new_sent.num_pred][p])) {
+                                    for (int s = 0; s < num_subs; s++) {
+                                        if (new_sent.param[new_sent.num_pred][p].var == substitutions[s].var) {
+                                            if (substitutions[s].con[0] != '\0')
+                                                strcpy(new_sent.param[new_sent.num_pred][p].con, substitutions[s].con);
+                                            else
+                                                new_sent.param[new_sent.num_pred][p].var = substitutions[s].var;
+                                        }
+                                    }
+                                }
+                            }
+                            new_sent.num_pred++;
+                        }
+                    }
+                    
+                    // Add new sentence to KB
+                    sentlist[sentptr] = new_sent;
+                    sentptr++;
+                    return 1;
                 }
             }
         }
     }
-    
-    if(!contradiction) {
-        printf("\nNo contradiction found. Query cannot be proved.\n");
-    }
-    fflush(stdout);
+    return 0;
 }
 
-// Helper function to show a single sentence
-void ShowSentence(int index) {
-    for(int j = 0; j < sentlist[index].num_pred; j++) {
-        if(sentlist[index].neg[j]) printf("!");
-        int p = sentlist[index].pred[j];
-        printf("%s(", predlist[p].name);
-        for(int k = 0; k < predlist[p].numparam; k++) {
-            if(constant(sentlist[index].param[j][k])) 
-                printf("%s", sentlist[index].param[j][k].con);
-            else 
-                printf("%c", 'a' + (unsigned char)sentlist[index].param[j][k].var % 26);
-            if(k < predlist[p].numparam-1) printf(",");
-        }
-        printf(") ");
-    }
-    printf("\n");
-}
-
-// Helper function to print the resolution path that led to contradiction
-void PrintResolutionPath(int sent1, int sent2) {
-    printf("  Final resolving sentences:\n");
-    printf("    Sentence %d: ", sent1);
-    ShowSentence(sent1);
-    printf("    Sentence %d: ", sent2);
-    ShowSentence(sent2);
+/* You must write this function */
+void Resolve(void) {
+   RandomResolve();
+   HeuristicResolve();
+   printf("Heuristic vs Random ratios:  hSteps/rSteps = %lg, hTime/rTime = %lg\n\n",(double)hSteps/(double)rSteps, hTime/rTime);
 }
 
 /* User enters a the negation of their query.  This is added to KB, and then KB is resolved to find solution */
 void ProveQuery(void) {
    char query[255];
-   char temp[100];
 
    printf("\nEnter negated query: ");
    fgets(query,255,stdin);
    StringToSentence(query);
    Resolve();
-   
-   printf("\nPress enter to continue...");
-   fgets(temp,100,stdin);
-}
-
-/* Unify attempts to unify two sentences. Returns 1 if successful, 0 if not */
-int Unify(int sent1, int sent2) {
-    // Check for empty sentences
-    if (sentlist[sent1].num_pred == 0 || sentlist[sent2].num_pred == 0) {
-        return 0;
-    }
-
-    for (int i = 0; i < sentlist[sent1].num_pred; i++) {
-        for (int j = 0; j < sentlist[sent2].num_pred; j++) {
-            // Check if predicates match and have opposite signs
-            if (sentlist[sent1].pred[i] == sentlist[sent2].pred[j] && 
-                sentlist[sent1].neg[i] != sentlist[sent2].neg[j]) {
-                
-                // Create substitution map for variables
-                int varMap[MAXSUB] = {0};
-                int canUnify = 1;
-                
-                // Check each parameter
-                for (int k = 0; k < predlist[sentlist[sent1].pred[i]].numparam; k++) {
-                    Parameter p1 = sentlist[sent1].param[i][k];
-                    Parameter p2 = sentlist[sent2].param[j][k];
-                    
-                    // Case 1: Both constants
-                    if (constant(p1) && constant(p2)) {
-                        if (strcmp(p1.con, p2.con) != 0) {
-                            canUnify = 0;
-                            break;
-                        }
-                    }
-                    // Case 2: First is variable, second is constant
-                    else if (variable(p1) && constant(p2)) {
-                        if (varMap[p1.var] == 0) {
-                            varMap[p1.var] = -(k + 1); // Store negative to indicate constant
-                        } else if (varMap[p1.var] != -(k + 1)) {
-                            canUnify = 0;
-                            break;
-                        }
-                    }
-                    // Case 3: First is constant, second is variable
-                    else if (constant(p1) && variable(p2)) {
-                        if (varMap[p2.var] == 0) {
-                            varMap[p2.var] = k + 1;
-                        } else if (varMap[p2.var] != k + 1) {
-                            canUnify = 0;
-                            break;
-                        }
-                    }
-                    // Case 4: Both variables
-                    else if (variable(p1) && variable(p2)) {
-                        if (varMap[p1.var] == 0 && varMap[p2.var] == 0) {
-                            varMap[p1.var] = p2.var;
-                        } else if (varMap[p1.var] != varMap[p2.var]) {
-                            canUnify = 0;
-                            break;
-                        }
-                    }
-                }
-                if (canUnify) return 1;
-            }
-        }
-    }
-    return 0;
 }
 
 int main(int argc, char *argv[])
