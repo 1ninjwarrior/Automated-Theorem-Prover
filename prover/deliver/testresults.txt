@@ -1,0 +1,826 @@
+*****************************************************************
+************************* prover ../test1 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               P(b) Q(c) 
+    1:                               !Q(A) 
+    2:                          <R>  !P(B) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+    0:                               P(b) Q(c) 
+    1:                               !Q(A) 
+--
+    3:     0:M     1:F               P(b) 
+    2:                          <R>  !P(B) 
+--
+Sentences 3 and 2 Complete the Proof!
+RandomResolve: #sent-generated = 1, #steps = 2, time = 0
+
+Running Heuristic Resolve...
+    2:                          <R>  !P(B) 
+    0:                     3:S       P(b) Q(c) 
+--
+    3:     2:M     0:F               Q(c) 
+    1:                               !Q(A) 
+--
+Sentences 3 and 1 Complete the Proof!
+HeuristicResolve: #sent-generated = 1, #steps = 2, time = 0
+
+Heuristic vs Random ratios:  hSent/rSent = 1, hSteps/rSteps = 1, hTime/rTime = nan
+
+*****************************************************************
+************************* prover ../test2 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               P(b) Q(b) 
+    1:                               !P(A) !Q(B) 
+    2:                               P(A) !Z(B) 
+    3:                               Q(B) 
+    4:                          <R>  !Q(A) !Q(B) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+    0:                               P(b) Q(b) 
+    4:                          <R>  !Q(A) !Q(B) 
+--
+    8:     0:M     4:F               P(A) !Q(B) 
+    1:                               !P(A) !Q(B) 
+--
+   10:     8:M     1:F               !Q(B) 
+    3:                               Q(B) 
+--
+Sentences 10 and 3 Complete the Proof!
+RandomResolve: #sent-generated = 8, #steps = 15, time = 0
+
+Running Heuristic Resolve...
+    4:                     5:S  <R>  !Q(A) !Q(B) 
+    3:                               Q(B) 
+--
+    5:     4:M     3:F               !Q(A) 
+    0:                               P(b) Q(b) 
+--
+    6:     5:M     0:F               P(A) 
+    1:                     7:S       !P(A) !Q(B) 
+--
+    7:     6:M     1:F               !Q(B) 
+    3:                               Q(B) 
+--
+Sentences 7 and 3 Complete the Proof!
+HeuristicResolve: #sent-generated = 3, #steps = 5, time = 0
+
+Heuristic vs Random ratios:  hSent/rSent = 0.375, hSteps/rSteps = 0.333333, hTime/rTime = nan
+
+*****************************************************************
+************************* prover ../test3 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               P(b,c) Q(b) Q(c) 
+    1:                               !P(A,A) !P(B,B) !P(A,B) 
+    2:                               !Q(A) 
+    3:                               !Q(B) 
+    4:                          <R>  P(d,d) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+    0:                               P(b,c) Q(b) Q(c) 
+    1:                               !P(A,A) !P(B,B) !P(A,B) 
+--
+    8:     0:M     1:F               !P(A,A) !P(B,B) Q(A) Q(B) 
+    4:                          <R>  P(d,d) 
+--
+    9:     8:M     4:F               !P(A,A) Q(A) Q(B) 
+    2:                               !Q(A) 
+--
+   11:     9:M     2:F               !P(A,A) Q(B) 
+    3:                               !Q(B) 
+--
+   23:    11:M     3:F               !P(A,A) 
+    4:                          <R>  P(d,d) 
+--
+Sentences 23 and 4 Complete the Proof!
+RandomResolve: #sent-generated = 19, #steps = 52, time = 0.01
+
+Running Heuristic Resolve...
+    4:                          <R>  P(d,d) 
+    1:                     5:S       !P(A,A) !P(B,B) !P(A,B) 
+--
+    5:     4:M     1:F     6:S       !P(A,A) !P(A,B) 
+    4:                          <R>  P(d,d) 
+--
+    6:     5:M     4:F               !P(A,B) 
+    0:                               P(b,c) Q(b) Q(c) 
+--
+    7:     6:M     0:F     8:S       Q(A) Q(B) 
+    3:                               !Q(B) 
+--
+    8:     7:M     3:F               Q(A) 
+    2:                               !Q(A) 
+--
+Sentences 8 and 2 Complete the Proof!
+HeuristicResolve: #sent-generated = 4, #steps = 9, time = 0
+
+Heuristic vs Random ratios:  hSent/rSent = 0.210526, hSteps/rSteps = 0.173077, hTime/rTime = 0
+
+*****************************************************************
+************************* prover ../test4.1 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+    1:                               P(e,f) A(e) A(f) 
+    2:                               !A(A) 
+    3:                               !A(B) 
+    4:                               !A(C) 
+    5:                               Q(g,h) A(g) A(h) 
+    6:                          <R>  S(A,B,C) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+   16:     0:M     5:F               !P(b,g) !S(b,g,h) A(g) A(h) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   35:    16:M     1:F               !S(e,f,h) A(f) A(h) A(e) 
+    6:                          <R>  S(A,B,C) 
+--
+   38:    35:M     6:F               A(B) A(C) A(A) 
+    4:                               !A(C) 
+--
+   59:    38:M     4:F               A(B) A(A) 
+    3:                               !A(B) 
+--
+   94:    59:M     3:F               A(A) 
+    2:                               !A(A) 
+--
+Sentences 94 and 2 Complete the Proof!
+RandomResolve: #sent-generated = 173, #steps = 610, time = 0.02
+
+Running Heuristic Resolve...
+    6:                          <R>  S(A,B,C) 
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+--
+    7:     6:M     0:F    10:S       !P(A,B) !Q(B,C) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+    8:     7:M     5:F     9:S       !P(A,B) A(B) A(C) 
+    4:                               !A(C) 
+--
+    9:     8:M     4:F    10:S       !P(A,B) A(B) 
+    3:                               !A(B) 
+--
+   10:     9:M     3:F               !P(A,B) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   11:    10:M     1:F    12:S       A(A) A(B) 
+    3:                               !A(B) 
+--
+   12:    11:M     3:F               A(A) 
+    2:                               !A(A) 
+--
+Sentences 12 and 2 Complete the Proof!
+HeuristicResolve: #sent-generated = 6, #steps = 12, time = 0
+
+Heuristic vs Random ratios:  hSent/rSent = 0.0346821, hSteps/rSteps = 0.0196721, hTime/rTime = 0
+
+*****************************************************************
+************************* prover ../test4.2 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+    1:                               P(e,f) A(e) A(f) 
+    2:                               !A(A) 
+    3:                               !A(B) 
+    4:                               !A(C) 
+    5:                               Q(g,h) A(g) A(h) 
+    6:                          <R>  S(A,A,A) S(A,B,C) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+    2:                               !A(A) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+    6:                          <R>  S(A,A,A) S(A,B,C) 
+--
+   13:     0:M     6:F               !P(A,B) !Q(B,C) S(A,A,A) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   14:    13:M     1:F               !Q(B,C) S(A,A,A) A(A) A(B) 
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+--
+   20:    14:M     0:F               !P(A,A) !Q(B,C) !Q(A,A) A(A) A(B) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+   27:     2:M     5:F               Q(g,A) A(g) 
+   22:    20:M     5:F               !P(A,A) !Q(A,A) A(A) A(B) A(C) 
+--
+   30:    27:M    22:F               !P(A,A) A(A) A(B) A(C) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   36:    30:M     1:F               A(A) A(B) A(C) 
+    2:                               !A(A) 
+--
+   55:    36:M     2:F               A(B) A(C) 
+    4:                               !A(C) 
+--
+   90:    55:M     4:F               A(B) 
+    3:                               !A(B) 
+--
+Sentences 90 and 3 Complete the Proof!
+RandomResolve: #sent-generated = 245, #steps = 2349, time = 0.08
+
+Running Heuristic Resolve...
+    6:                    13:S  <R>  S(A,A,A) S(A,B,C) 
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+--
+    7:     6:M     0:F    10:S       !P(A,B) !Q(B,C) S(A,A,A) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+    8:     7:M     5:F     9:S       !P(A,B) S(A,A,A) A(B) A(C) 
+    4:                               !A(C) 
+--
+    9:     8:M     4:F    10:S       !P(A,B) S(A,A,A) A(B) 
+    3:                               !A(B) 
+--
+   10:     9:M     3:F    13:S       !P(A,B) S(A,A,A) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   11:    10:M     1:F    12:S       S(A,A,A) A(A) A(B) 
+    3:                               !A(B) 
+--
+   12:    11:M     3:F    13:S       S(A,A,A) A(A) 
+    2:                               !A(A) 
+--
+   13:    12:M     2:F               S(A,A,A) 
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+--
+   14:    13:M     0:F    16:S       !P(A,A) !Q(A,A) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+   15:    14:M     5:F    16:S       !P(A,A) A(A) 
+    2:                               !A(A) 
+--
+   16:    15:M     2:F               !P(A,A) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   17:    16:M     1:F               A(A) 
+    2:                               !A(A) 
+--
+Sentences 17 and 2 Complete the Proof!
+HeuristicResolve: #sent-generated = 11, #steps = 21, time = 0
+
+Heuristic vs Random ratios:  hSent/rSent = 0.044898, hSteps/rSteps = 0.00893997, hTime/rTime = 0
+
+*****************************************************************
+************************* prover ../test4.3 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+    1:                               P(e,f) A(e) A(f) 
+    2:                               !A(A) 
+    3:                               !A(B) 
+    4:                               !A(C) 
+    5:                               Q(g,h) A(g) A(h) 
+    6:                          <R>  S(A,A,A) S(B,B,B) S(C,C,C) S(A,B,C) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+    1:                               P(e,f) A(e) A(f) 
+--
+    8:     0:M     1:F               !Q(f,d) !S(e,f,d) A(e) A(f) 
+    2:                               !A(A) 
+--
+   39:     8:M     2:F               !Q(f,d) !S(A,f,d) A(f) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+  192:    39:M     5:F               !S(A,g,h) A(g) A(h) 
+    2:                               !A(A) 
+--
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+    6:                          <R>  S(A,A,A) S(B,B,B) S(C,C,C) S(A,B,C) 
+--
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+    9:     0:M     5:F               !P(b,g) !S(b,g,h) A(g) A(h) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   20:     0:M     6:F               !P(C,C) !Q(C,C) S(A,A,A) S(B,B,B) S(A,B,C) 
+   12:     9:M     1:F               !S(e,f,h) A(f) A(h) A(e) 
+--
+   21:    20:M    12:F               !P(C,C) !Q(C,C) S(A,A,A) S(A,B,C) A(B) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+   79:    21:M     5:F               !P(C,C) S(A,A,A) S(A,B,C) A(B) A(C) 
+    3:                               !A(B) 
+--
+    3:                               !A(B) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+    1:                               P(e,f) A(e) A(f) 
+--
+    8:     0:M     1:F               !Q(f,d) !S(e,f,d) A(e) A(f) 
+    3:                               !A(B) 
+--
+   19:     3:M     5:F               Q(B,h) A(h) 
+   11:     8:M     3:F               !Q(B,d) !S(e,B,d) A(e) 
+--
+  273:    19:M    11:F               !S(e,B,d) A(d) A(e) 
+    2:                               !A(A) 
+--
+  321:    79:M     3:F               !P(C,C) S(A,A,A) S(A,B,C) A(C) 
+  293:   273:M     2:F               !S(A,B,d) A(d) 
+--
+  432:   321:M   293:F               !P(C,C) S(A,A,A) A(C) 
+    4:                               !A(C) 
+--
+  572:   192:M     2:F               !S(A,g,A) A(g) 
+  505:   432:M     4:F               !P(C,C) S(A,A,A) 
+--
+    1:                               P(e,f) A(e) A(f) 
+    4:                               !A(C) 
+--
+   16:     1:M     4:F               P(C,f) A(f) 
+    4:                               !A(C) 
+--
+  637:   572:M   505:F               !P(C,C) A(A) 
+   45:    16:M     4:F               P(C,C) 
+--
+  897:   637:M    45:F               A(A) 
+    2:                               !A(A) 
+--
+Sentences 897 and 2 Complete the Proof!
+RandomResolve: #sent-generated = 2423, #steps = 33406, time = 74.39
+
+Running Heuristic Resolve...
+    6:                    13:S  <R>  S(A,A,A) S(B,B,B) S(C,C,C) S(A,B,C) 
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+--
+    7:     6:M     0:F    10:S       !P(A,B) !Q(B,C) S(A,A,A) S(B,B,B) S(C,C,C) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+    8:     7:M     5:F     9:S       !P(A,B) S(A,A,A) S(B,B,B) S(C,C,C) A(B) A(C) 
+    4:                               !A(C) 
+--
+    9:     8:M     4:F    10:S       !P(A,B) S(A,A,A) S(B,B,B) S(C,C,C) A(B) 
+    3:                               !A(B) 
+--
+   10:     9:M     3:F    13:S       !P(A,B) S(A,A,A) S(B,B,B) S(C,C,C) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   11:    10:M     1:F    12:S       S(A,A,A) S(B,B,B) S(C,C,C) A(A) A(B) 
+    3:                               !A(B) 
+--
+   12:    11:M     3:F    13:S       S(A,A,A) S(B,B,B) S(C,C,C) A(A) 
+    2:                               !A(A) 
+--
+   13:    12:M     2:F    18:S       S(A,A,A) S(B,B,B) S(C,C,C) 
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+--
+   14:    13:M     0:F    16:S       !P(C,C) !Q(C,C) S(A,A,A) S(B,B,B) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+   15:    14:M     5:F    16:S       !P(C,C) S(A,A,A) S(B,B,B) A(C) 
+    4:                               !A(C) 
+--
+   16:    15:M     4:F    18:S       !P(C,C) S(A,A,A) S(B,B,B) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   17:    16:M     1:F    18:S       S(A,A,A) S(B,B,B) A(C) 
+    4:                               !A(C) 
+--
+   18:    17:M     4:F    23:S       S(A,A,A) S(B,B,B) 
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+--
+   19:    18:M     0:F    21:S       !P(B,B) !Q(B,B) S(A,A,A) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+   20:    19:M     5:F    21:S       !P(B,B) S(A,A,A) A(B) 
+    3:                               !A(B) 
+--
+   21:    20:M     3:F    23:S       !P(B,B) S(A,A,A) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   22:    21:M     1:F    23:S       S(A,A,A) A(B) 
+    3:                               !A(B) 
+--
+   23:    22:M     3:F               S(A,A,A) 
+    0:                               !P(b,c) !Q(c,d) !S(b,c,d) 
+--
+   24:    23:M     0:F    26:S       !P(A,A) !Q(A,A) 
+    5:                               Q(g,h) A(g) A(h) 
+--
+   25:    24:M     5:F    26:S       !P(A,A) A(A) 
+    2:                               !A(A) 
+--
+   26:    25:M     2:F               !P(A,A) 
+    1:                               P(e,f) A(e) A(f) 
+--
+   27:    26:M     1:F               A(A) 
+    2:                               !A(A) 
+--
+Sentences 27 and 2 Complete the Proof!
+HeuristicResolve: #sent-generated = 21, #steps = 33, time = 0.04
+
+Heuristic vs Random ratios:  hSent/rSent = 0.00866694, hSteps/rSteps = 0.000987846, hTime/rTime = 0.000537707
+
+*****************************************************************
+************************* prover ../test5.1 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+    1:                               P(f,g) A(f) A(g) 
+    2:                               !A(A) 
+    3:                               !A(B) 
+    4:                               !A(C) 
+    5:                               !A(D) 
+    6:                               Q(h,i) A(h) A(i) 
+    7:                               R(j,k) A(j) A(k) 
+    8:                          <R>  S(A,B,C,D) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+    5:                               !A(D) 
+    7:                               R(j,k) A(j) A(k) 
+--
+   10:     5:M     7:F               R(j,D) A(j) 
+    4:                               !A(C) 
+--
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+    1:                               P(f,g) A(f) A(g) 
+--
+  941:    10:M     4:F               R(C,D) 
+   16:     0:M     1:F               !Q(g,d) !R(d,e) !S(f,g,d,e) A(f) A(g) 
+--
+ 1406:   941:M    16:F               !Q(g,C) !S(f,g,C,D) A(f) A(g) 
+    3:                               !A(B) 
+--
+    4:                               !A(C) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+  807:     4:M     6:F               Q(h,C) A(h) 
+    3:                               !A(B) 
+--
+ 1769:  1406:M     3:F               !Q(B,C) !S(f,B,C,D) A(f) 
+  879:   807:M     3:F               Q(B,C) 
+--
+ 1822:  1769:M   879:F               !S(f,B,C,D) A(f) 
+    8:                          <R>  S(A,B,C,D) 
+--
+ 1868:  1822:M     8:F               A(A) 
+    2:                               !A(A) 
+--
+Sentences 1868 and 2 Complete the Proof!
+RandomResolve: #sent-generated = 2067, #steps = 6831, time = 2.87
+
+Running Heuristic Resolve...
+    8:                          <R>  S(A,B,C,D) 
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+--
+    9:     8:M     0:F    14:S       !P(A,B) !Q(B,C) !R(C,D) 
+    7:                               R(j,k) A(j) A(k) 
+--
+   10:     9:M     7:F    14:S       !P(A,B) !Q(B,C) A(C) A(D) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+   11:    10:M     6:F    12:S       !P(A,B) A(C) A(D) A(B) 
+    5:                               !A(D) 
+--
+   12:    11:M     5:F    13:S       !P(A,B) A(C) A(B) 
+    4:                               !A(C) 
+--
+   13:    12:M     4:F    14:S       !P(A,B) A(B) 
+    3:                               !A(B) 
+--
+   14:    13:M     3:F               !P(A,B) 
+    1:                               P(f,g) A(f) A(g) 
+--
+   15:    14:M     1:F    16:S       A(A) A(B) 
+    3:                               !A(B) 
+--
+   16:    15:M     3:F               A(A) 
+    2:                               !A(A) 
+--
+Sentences 16 and 2 Complete the Proof!
+HeuristicResolve: #sent-generated = 8, #steps = 22, time = 0
+
+Heuristic vs Random ratios:  hSent/rSent = 0.00387034, hSteps/rSteps = 0.00322061, hTime/rTime = 0
+
+*****************************************************************
+************************* prover ../test5.2 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+    1:                               P(f,g) A(f) A(g) 
+    2:                               !A(A) 
+    3:                               !A(B) 
+    4:                               !A(C) 
+    5:                               !A(D) 
+    6:                               Q(h,i) A(h) A(i) 
+    7:                               R(j,k) A(j) A(k) 
+    8:                          <R>  S(B,B,B,B) S(A,B,C,D) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+    1:                               P(f,g) A(f) A(g) 
+--
+  405:     0:M     1:F               !Q(g,d) !R(d,e) !S(f,g,d,e) A(f) A(g) 
+    8:                          <R>  S(B,B,B,B) S(A,B,C,D) 
+--
+  426:   405:M     8:F               !Q(B,C) !R(C,D) S(B,B,B,B) A(A) A(B) 
+    3:                               !A(B) 
+--
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+    7:                               R(j,k) A(j) A(k) 
+--
+    9:     0:M     7:F               !P(b,c) !Q(c,j) !S(b,c,j,k) A(j) A(k) 
+    1:                               P(f,g) A(f) A(g) 
+--
+   11:     9:M     1:F               !Q(g,j) !S(f,g,j,k) A(j) A(k) A(f) A(g) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+   56:    11:M     6:F               !S(f,h,i,k) A(i) A(k) A(f) A(h) 
+    3:                               !A(B) 
+--
+  490:   426:M     3:F               !Q(B,C) !R(C,D) S(B,B,B,B) A(A) 
+  342:    56:M     3:F               !S(f,h,B,k) A(k) A(f) A(h) 
+--
+  576:   490:M   342:F               !Q(B,C) !R(C,D) A(A) A(B) 
+    2:                               !A(A) 
+--
+    4:                               !A(C) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+  718:   576:M     2:F               !Q(B,C) !R(C,D) A(B) 
+   36:     4:M     6:F               Q(h,C) A(h) 
+--
+  888:   718:M    36:F               !R(C,D) A(B) 
+    3:                               !A(B) 
+--
+    4:                               !A(C) 
+    7:                               R(j,k) A(j) A(k) 
+--
+   14:     4:M     7:F               R(C,k) A(k) 
+    5:                               !A(D) 
+--
+ 1389:   888:M     3:F               !R(C,D) 
+   27:    14:M     5:F               R(C,D) 
+--
+Sentences 1389 and 27 Complete the Proof!
+RandomResolve: #sent-generated = 2131, #steps = 23570, time = 27.08
+
+Running Heuristic Resolve...
+    8:                    17:S  <R>  S(B,B,B,B) S(A,B,C,D) 
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+--
+    9:     8:M     0:F    14:S       !P(A,B) !Q(B,C) !R(C,D) S(B,B,B,B) 
+    7:                               R(j,k) A(j) A(k) 
+--
+   10:     9:M     7:F    14:S       !P(A,B) !Q(B,C) S(B,B,B,B) A(C) A(D) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+   11:    10:M     6:F    12:S       !P(A,B) S(B,B,B,B) A(C) A(D) A(B) 
+    5:                               !A(D) 
+--
+   12:    11:M     5:F    13:S       !P(A,B) S(B,B,B,B) A(C) A(B) 
+    4:                               !A(C) 
+--
+   13:    12:M     4:F    14:S       !P(A,B) S(B,B,B,B) A(B) 
+    3:                               !A(B) 
+--
+   14:    13:M     3:F    17:S       !P(A,B) S(B,B,B,B) 
+    1:                               P(f,g) A(f) A(g) 
+--
+   15:    14:M     1:F    16:S       S(B,B,B,B) A(A) A(B) 
+    3:                               !A(B) 
+--
+   16:    15:M     3:F    17:S       S(B,B,B,B) A(A) 
+    2:                               !A(A) 
+--
+   17:    16:M     2:F               S(B,B,B,B) 
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+--
+   18:    17:M     0:F    21:S       !P(B,B) !Q(B,B) !R(B,B) 
+    7:                               R(j,k) A(j) A(k) 
+--
+   19:    18:M     7:F    20:S       !P(B,B) !Q(B,B) A(B) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+   20:    19:M     6:F    21:S       !P(B,B) A(B) 
+    3:                               !A(B) 
+--
+   21:    20:M     3:F               !P(B,B) 
+    1:                               P(f,g) A(f) A(g) 
+--
+   22:    21:M     1:F               A(B) 
+    3:                               !A(B) 
+--
+Sentences 22 and 3 Complete the Proof!
+HeuristicResolve: #sent-generated = 14, #steps = 32, time = 0.02
+
+Heuristic vs Random ratios:  hSent/rSent = 0.00656969, hSteps/rSteps = 0.00135766, hTime/rTime = 0.000738552
+
+*****************************************************************
+************************* prover ../test5.3 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+    1:                               P(f,g) A(f) A(g) 
+    2:                               !A(A) 
+    3:                               !A(B) 
+    4:                               !A(C) 
+    5:                               !A(D) 
+    6:                               Q(h,i) A(h) A(i) 
+    7:                               R(j,k) A(j) A(k) 
+    8:                          <R>  S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) S(A,B,C,D) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+FAILED to resolve!  KB is FULL.
+
+RandomResolve: #sent-generated = 9991, #steps = 90470, time = 1277.54
+
+Running Heuristic Resolve...
+    8:                    17:S  <R>  S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) S(A,B,C,D) 
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+--
+    9:     8:M     0:F    14:S       !P(A,B) !Q(B,C) !R(C,D) S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) 
+    7:                               R(j,k) A(j) A(k) 
+--
+   10:     9:M     7:F    14:S       !P(A,B) !Q(B,C) S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) A(C) A(D) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+   11:    10:M     6:F    12:S       !P(A,B) S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) A(C) A(D) A(B) 
+    5:                               !A(D) 
+--
+   12:    11:M     5:F    13:S       !P(A,B) S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) A(C) A(B) 
+    4:                               !A(C) 
+--
+   13:    12:M     4:F    14:S       !P(A,B) S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) A(B) 
+    3:                               !A(B) 
+--
+   14:    13:M     3:F    17:S       !P(A,B) S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) 
+    1:                               P(f,g) A(f) A(g) 
+--
+   15:    14:M     1:F    16:S       S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) A(A) A(B) 
+    3:                               !A(B) 
+--
+   16:    15:M     3:F    17:S       S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) A(A) 
+    2:                               !A(A) 
+--
+   17:    16:M     2:F    23:S       S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) S(D,D,D,D) 
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+--
+   18:    17:M     0:F    21:S       !P(D,D) !Q(D,D) !R(D,D) S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) 
+    7:                               R(j,k) A(j) A(k) 
+--
+   19:    18:M     7:F    20:S       !P(D,D) !Q(D,D) S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) A(D) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+   20:    19:M     6:F    21:S       !P(D,D) S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) A(D) 
+    5:                               !A(D) 
+--
+   21:    20:M     5:F    23:S       !P(D,D) S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) 
+    1:                               P(f,g) A(f) A(g) 
+--
+   22:    21:M     1:F    23:S       S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) A(D) 
+    5:                               !A(D) 
+--
+   23:    22:M     5:F    29:S       S(A,A,A,A) S(B,B,B,B) S(C,C,C,C) 
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+--
+   24:    23:M     0:F    27:S       !P(C,C) !Q(C,C) !R(C,C) S(A,A,A,A) S(B,B,B,B) 
+    7:                               R(j,k) A(j) A(k) 
+--
+   25:    24:M     7:F    26:S       !P(C,C) !Q(C,C) S(A,A,A,A) S(B,B,B,B) A(C) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+   26:    25:M     6:F    27:S       !P(C,C) S(A,A,A,A) S(B,B,B,B) A(C) 
+    4:                               !A(C) 
+--
+   27:    26:M     4:F    29:S       !P(C,C) S(A,A,A,A) S(B,B,B,B) 
+    1:                               P(f,g) A(f) A(g) 
+--
+   28:    27:M     1:F    29:S       S(A,A,A,A) S(B,B,B,B) A(C) 
+    4:                               !A(C) 
+--
+   29:    28:M     4:F    35:S       S(A,A,A,A) S(B,B,B,B) 
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+--
+   30:    29:M     0:F    33:S       !P(B,B) !Q(B,B) !R(B,B) S(A,A,A,A) 
+    7:                               R(j,k) A(j) A(k) 
+--
+   31:    30:M     7:F    32:S       !P(B,B) !Q(B,B) S(A,A,A,A) A(B) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+   32:    31:M     6:F    33:S       !P(B,B) S(A,A,A,A) A(B) 
+    3:                               !A(B) 
+--
+   33:    32:M     3:F    35:S       !P(B,B) S(A,A,A,A) 
+    1:                               P(f,g) A(f) A(g) 
+--
+   34:    33:M     1:F    35:S       S(A,A,A,A) A(B) 
+    3:                               !A(B) 
+--
+   35:    34:M     3:F               S(A,A,A,A) 
+    0:                               !P(b,c) !Q(c,d) !R(d,e) !S(b,c,d,e) 
+--
+   36:    35:M     0:F    39:S       !P(A,A) !Q(A,A) !R(A,A) 
+    7:                               R(j,k) A(j) A(k) 
+--
+   37:    36:M     7:F    38:S       !P(A,A) !Q(A,A) A(A) 
+    6:                               Q(h,i) A(h) A(i) 
+--
+   38:    37:M     6:F    39:S       !P(A,A) A(A) 
+    2:                               !A(A) 
+--
+   39:    38:M     2:F               !P(A,A) 
+    1:                               P(f,g) A(f) A(g) 
+--
+   40:    39:M     1:F               A(A) 
+    2:                               !A(A) 
+--
+Sentences 40 and 2 Complete the Proof!
+HeuristicResolve: #sent-generated = 32, #steps = 58, time = 0.26
+
+Heuristic vs Random ratios:  hSent/rSent = 0.00320288, hSteps/rSteps = 0.000641096, hTime/rTime = 0.000203516
+
+*****************************************************************
+************************* prover ../test6.0 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               P(b,c) A(b) A(c) 
+    1:                               !A(A) 
+    2:                               !A(B) 
+    3:                               A(d) A(e) Q(d,e) 
+    4:                          <R>  A(f) A(g) R(f,g) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+FAILED to resolve! There are no more possible resolutions.
+
+RandomResolve: #sent-generated = 24, #steps = 36, time = 0
+
+Running Heuristic Resolve...
+FAILED to resolve! There are no more possible resolutions.
+
+HeuristicResolve: #sent-generated = 8, #steps = 12, time = 0
+
+Heuristic vs Random ratios:  hSent/rSent = 0.333333, hSteps/rSteps = 0.333333, hTime/rTime = nan
+
+*****************************************************************
+************************* prover ../test7 ***********************
+*****************************************************************
+
+Current Knowledge Base
+    0:                               sam(b,c) fred(b) fred(c) 
+    1:                               !sam(A,A) !sam(B,B) !sam(A,B) 
+    2:                               !fred(A) 
+    3:                               !fred(B) 
+    4:                          <R>  sam(d,d) 
+
+Running Random Resolve (press Ctrl-c to cancel)...
+    0:                               sam(b,c) fred(b) fred(c) 
+    3:                               !fred(B) 
+--
+   18:     0:M     3:F               sam(b,B) fred(b) 
+    1:                               !sam(A,A) !sam(B,B) !sam(A,B) 
+--
+   25:    18:M     1:F               !sam(A,A) !sam(B,B) fred(A) 
+    2:                               !fred(A) 
+--
+   27:    25:M     2:F               !sam(A,A) !sam(B,B) 
+    4:                          <R>  sam(d,d) 
+--
+   32:    27:M     4:F               !sam(A,A) 
+    4:                          <R>  sam(d,d) 
+--
+Sentences 32 and 4 Complete the Proof!
+RandomResolve: #sent-generated = 28, #steps = 168, time = 0.01
+
+Running Heuristic Resolve...
+    4:                          <R>  sam(d,d) 
+    1:                     5:S       !sam(A,A) !sam(B,B) !sam(A,B) 
+--
+    5:     4:M     1:F     6:S       !sam(A,A) !sam(A,B) 
+    4:                          <R>  sam(d,d) 
+--
+    6:     5:M     4:F               !sam(A,B) 
+    0:                               sam(b,c) fred(b) fred(c) 
+--
+    7:     6:M     0:F     8:S       fred(A) fred(B) 
+    3:                               !fred(B) 
+--
+    8:     7:M     3:F               fred(A) 
+    2:                               !fred(A) 
+--
+Sentences 8 and 2 Complete the Proof!
+HeuristicResolve: #sent-generated = 4, #steps = 9, time = 0
+
+Heuristic vs Random ratios:  hSent/rSent = 0.142857, hSteps/rSteps = 0.0535714, hTime/rTime = 0
+

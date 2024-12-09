@@ -1,0 +1,6 @@
+P(x,y) Q(x) Q(y)
+!P(A,A) !P(B,B) !P(A,B)
+!Q(A)
+!Q(B)
+
+P(x,x)
