@@ -1,0 +1,14 @@
+CS 470 - Theorem Prover Programming Assignment
+
+Here are the steps necessary to complete the program: 
+
+1. Go over the code (prover.c) to make sure you understand how it stores the sentences and predicates. 
+We have commented it to help you understand what everything is for.
+2. Write the 'Resolve' function to implement your resolution strategy (set of support is a popular
+strategy). This will certainly involve writing other various supporting functions to unify sentences,
+perform substitutions, etc. 
+ 
+If you find that the source code we provide is too difficult to follow you may want to start from
+scratch with your own representation and so forth. 
+
+Refer to the web page for more info

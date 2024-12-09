@@ -1,0 +1,46 @@
+! = negation
+A predicate name is composed of any sequence of upper and/or lower case alphabet characters.
+A parameter name is composed of any sequence of upper and/or lower case alphabet characters.
+A constant parameter begins with an upper case character.
+A variable parameter begins with a lower case character.
+Parameters are separated be commas.
+Since we are using conjunctive normal form we can assume that the predicates on a given
+line are or'd together so we don't put or's between them.
+
+The syntax for a knowledge base is formally (more or less) defined with the following grammar 
+In the grammar given below the ~ character means the empty string
+
+<sentence> --> <space><pred_list><space>\n    /* \n is a carriage return */
+<space> --> " "<space>                        /* here the " " is a single space */
+<space> --> ~
+<pred_list> --> <space><not><predicate><more_pred>
+<more_pred> --> <pred_list>
+<more_pred> --> ~
+<not> --> !
+<not> --> ~
+<predicate> --> <pred_name><param_list>
+<pred_name> --> <alpha_char><chars>
+<alpha_char> --> <upper_case>|<lower_case>
+<upper_case> --> A|B| ... |Z
+<lower_case> --> a|b| ... |z
+<chars> --> <alpha_char><chars>
+<chars> --> ~
+<param_list> --> (<space><parameter><space><params>)
+<parameter> --> <constant>|<variable>
+<constant> --> <upper_case><chars>
+<variable> --> <lower_case><chars>
+<params> --> ,<parameter><params>
+<params> --> ~
+
+
+A sample knowledge base:
+
+dude(d,z,x)
+!goodguy(x) badguy(x)
+  whatsthat(z) ! whosthat(q)
+
+!badguy(x)
+!badguy(y)
+
+
+

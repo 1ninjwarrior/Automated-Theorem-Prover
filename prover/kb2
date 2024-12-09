@@ -1,0 +1,4 @@
+!goodguy( Xz ) !badguy(X) badguy(P) goodguy(y) !goodguy(z)
+!A(a) A(a) !A(B) A(B) A(C)
+
+!goodguy( Xz ) !badguy(x)
