@@ -346,13 +346,8 @@ void HeuristicResolve() {
     printf("\nRunning Heuristic Resolve...\n");
     
     while (sentptr < MAXSENT) {
-        int best_sent1 = -1;
-        int best_sent2 = -1;
-        int best_score = -1;
-        
         for (int i = 0; i < sentptr; i++) {
             if (sentlist[i].num_pred == 0) continue;
-            hSteps++;
             
             for (int j = i + 1; j < sentptr; j++) {
                 if (sentlist[j].num_pred == 0) continue;
@@ -361,115 +356,61 @@ void HeuristicResolve() {
                 int bit = (i * MAXSENT + j) % 8;
                 if (tried[idx] & (1 << bit)) continue;
 
-                // Print each attempted resolution step
-                printf("Trying resolution between:\n");
+                // Mark this pair as tried
+                tried[idx] |= (1 << bit);
+                
+                // Print the attempted resolution
                 printf("    %d:                               ", i);
-                for (int pi = 0; pi < sentlist[i].num_pred; pi++) {
-                    if (sentlist[i].neg[pi]) printf("!");
-                    printf("%s(", predlist[sentlist[i].pred[pi]].name);
-                    for (int pj = 0; pj < predlist[sentlist[i].pred[pi]].numparam; pj++) {
-                        if (constant(sentlist[i].param[pi][pj])) 
-                            printf("%s", sentlist[i].param[pi][pj].con);
+                for (int k = 0; k < sentlist[i].num_pred; k++) {
+                    if (sentlist[i].neg[k]) printf("!");
+                    printf("%s(", predlist[sentlist[i].pred[k]].name);
+                    for (int p = 0; p < predlist[sentlist[i].pred[k]].numparam; p++) {
+                        if (constant(sentlist[i].param[k][p])) 
+                            printf("%s", sentlist[i].param[k][p].con);
                         else 
-                            printf("%c", 'a' + (unsigned char)sentlist[i].param[pi][pj].var % 26);
-                        if (pj < predlist[sentlist[i].pred[pi]].numparam - 1) printf(",");
+                            printf("%c", 'a' + (unsigned char)sentlist[i].param[k][p].var % 26);
+                        if (p < predlist[sentlist[i].pred[k]].numparam - 1) printf(",");
                     }
                     printf(") ");
                 }
                 printf("\n");
 
                 printf("    %d:                               ", j);
-                for (int pi = 0; pi < sentlist[j].num_pred; pi++) {
-                    if (sentlist[j].neg[pi]) printf("!");
-                    printf("%s(", predlist[sentlist[j].pred[pi]].name);
-                    for (int pj = 0; pj < predlist[sentlist[j].pred[pi]].numparam; pj++) {
-                        if (constant(sentlist[j].param[pi][pj])) 
-                            printf("%s", sentlist[j].param[pi][pj].con);
+                for (int k = 0; k < sentlist[j].num_pred; k++) {
+                    if (sentlist[j].neg[k]) printf("!");
+                    printf("%s(", predlist[sentlist[j].pred[k]].name);
+                    for (int p = 0; p < predlist[sentlist[j].pred[k]].numparam; p++) {
+                        if (constant(sentlist[j].param[k][p])) 
+                            printf("%s", sentlist[j].param[k][p].con);
                         else 
-                            printf("%c", 'a' + (unsigned char)sentlist[j].param[pi][pj].var % 26);
-                        if (pj < predlist[sentlist[j].pred[pi]].numparam - 1) printf(",");
+                            printf("%c", 'a' + (unsigned char)sentlist[j].param[k][p].var % 26);
+                        if (p < predlist[sentlist[j].pred[k]].numparam - 1) printf(",");
                     }
                     printf(") ");
                 }
                 printf("\n--\n");
-
-                // Rest of the existing scoring logic
-                int found_complement = 0;
-                int score = 0;
                 
-                Sentence *s1 = &sentlist[i];
-                Sentence *s2 = &sentlist[j];
+                hSteps++;  // Increment steps for each attempt
                 
-                for (int pi = 0; !found_complement && pi < s1->num_pred; pi++) {
-                    for (int pj = 0; pj < s2->num_pred; pj++) {
-                        if (s1->pred[pi] == s2->pred[pj] && s1->neg[pi] != s2->neg[pj]) {
-                            found_complement = 1;
-                            score = 50;
-                            break;
-                        }
+                // Try to unify
+                if (Unify(i, j)) {
+                    sent_generated++;
+                    
+                    // Check if we found a contradiction
+                    if (sentlist[sentptr-1].num_pred == 0) {
+                        printf("Sentences %d and %d Complete the Proof!\n", i, j);
+                        free(tried);
+                        hTime = (double)(clock() - start) / CLOCKS_PER_SEC;
+                        printf("HeuristicResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", 
+                               sent_generated, hSteps, hTime);
+                        return;
                     }
                 }
-                
-                if (!found_complement) continue;
-
-                score += (s1->refutePart + s2->refutePart) * 100;
-                score -= (s1->num_pred + s2->num_pred) * 2;
-                
-                if (score > best_score) {
-                    best_score = score;
-                    best_sent1 = i;
-                    best_sent2 = j;
-                }
-            }
-        }
-        
-        if (best_sent1 == -1) break;
-        
-        int idx = (best_sent1 * MAXSENT + best_sent2) / 8;
-        int bit = (best_sent1 * MAXSENT + best_sent2) % 8;
-        tried[idx] |= (1 << bit);
-        
-        printf("    %d:                               ", best_sent1);
-        for (int i = 0; i < sentlist[best_sent1].num_pred; i++) {
-            if (sentlist[best_sent1].neg[i]) printf("!");
-            printf("%s(", predlist[sentlist[best_sent1].pred[i]].name);
-            for (int j = 0; j < predlist[sentlist[best_sent1].pred[i]].numparam; j++) {
-                if (constant(sentlist[best_sent1].param[i][j])) 
-                    printf("%s", sentlist[best_sent1].param[i][j].con);
-                else 
-                    printf("%c", 'a' + (unsigned char)sentlist[best_sent1].param[i][j].var % 26);
-                if (j < predlist[sentlist[best_sent1].pred[i]].numparam - 1) printf(",");
-            }
-            printf(") ");
-        }
-        printf("\n");
-
-        printf("    %d:                               ", best_sent2);
-        for (int i = 0; i < sentlist[best_sent2].num_pred; i++) {
-            if (sentlist[best_sent2].neg[i]) printf("!");
-            printf("%s(", predlist[sentlist[best_sent2].pred[i]].name);
-            for (int j = 0; j < predlist[sentlist[best_sent2].pred[i]].numparam; j++) {
-                if (constant(sentlist[best_sent2].param[i][j])) 
-                    printf("%s", sentlist[best_sent2].param[i][j].con);
-                else 
-                    printf("%c", 'a' + (unsigned char)sentlist[best_sent2].param[i][j].var % 26);
-                if (j < predlist[sentlist[best_sent2].pred[i]].numparam - 1) printf(",");
-            }
-            printf(") ");
-        }
-        printf("\n--\n");
-        
-        if (Unify(best_sent1, best_sent2)) {
-            hSteps++;
-            sent_generated++;
-            
-            if (sentlist[sentptr-1].num_pred == 0) {
-                printf("Sentences %d and %d Complete the Proof!\n", best_sent1, best_sent2);
-                free(tried);
-                break;
             }
         }
     }
+    
+    free(tried);
     
     if (sentptr >= MAXSENT) {
         printf("FAILED to resolve! KB is FULL.\n");
