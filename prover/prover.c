@@ -340,26 +340,51 @@ void HeuristicResolve() {
     int sent_generated = 0;
     int initial_sentptr = sentptr;
     
-    unsigned char *tried = (unsigned char*)calloc((MAXSENT * MAXSENT) / 8 + 1, 1);
-    if (!tried) return;
-    
     printf("\nRunning Heuristic Resolve...\n");
     
+    // Track which sentence pairs we've already tried
+    int tried[MAXSENT][MAXSENT] = {0};
+    
+    // Track unique resolutions using a hash of the resolved sentences
+    int seen_resolutions[MAXSENT] = {0};
+    
+    // Keep going until we find a contradiction or run out of options
     while (sentptr < MAXSENT) {
+        int found_resolution = 0;
+        
+        // First try to resolve refuted sentences with shortest complementary sentences
         for (int i = 0; i < sentptr; i++) {
-            if (sentlist[i].num_pred == 0) continue;
+            if (!sentlist[i].refutePart) continue;
             
-            for (int j = i + 1; j < sentptr; j++) {
-                if (sentlist[j].num_pred == 0) continue;
+            // Find the best complementary sentence
+            int best_j = -1;
+            int min_predicates = MAXPRED + 1;
+            
+            for (int j = 0; j < sentptr; j++) {
+                if (tried[i][j] || i == j || sentlist[j].refutePart) continue;
                 
-                int idx = (i * MAXSENT + j) / 8;
-                int bit = (i * MAXSENT + j) % 8;
-                if (tried[idx] & (1 << bit)) continue;
-
-                // Mark this pair as tried
-                tried[idx] |= (1 << bit);
+                // Quick check for complementary predicates
+                for (int pi = 0; pi < sentlist[i].num_pred; pi++) {
+                    for (int pj = 0; pj < sentlist[j].num_pred; pj++) {
+                        if (sentlist[i].pred[pi] == sentlist[j].pred[pj] && 
+                            sentlist[i].neg[pi] != sentlist[j].neg[pj]) {
+                            // Prefer shorter sentences
+                            if (sentlist[j].num_pred < min_predicates) {
+                                min_predicates = sentlist[j].num_pred;
+                                best_j = j;
+                            }
+                            break;
+                        }
+                    }
+                    if (best_j != -1) break;
+                }
+            }
+            
+            if (best_j != -1) {
+                tried[i][best_j] = tried[best_j][i] = 1;
+                hSteps++;
                 
-                // Print the attempted resolution
+                // Print attempted resolution
                 printf("    %d:                               ", i);
                 for (int k = 0; k < sentlist[i].num_pred; k++) {
                     if (sentlist[i].neg[k]) printf("!");
@@ -374,55 +399,90 @@ void HeuristicResolve() {
                     printf(") ");
                 }
                 printf("\n");
-
-                printf("    %d:                               ", j);
-                for (int k = 0; k < sentlist[j].num_pred; k++) {
-                    if (sentlist[j].neg[k]) printf("!");
-                    printf("%s(", predlist[sentlist[j].pred[k]].name);
-                    for (int p = 0; p < predlist[sentlist[j].pred[k]].numparam; p++) {
-                        if (constant(sentlist[j].param[k][p])) 
-                            printf("%s", sentlist[j].param[k][p].con);
+                
+                printf("    %d:                               ", best_j);
+                for (int k = 0; k < sentlist[best_j].num_pred; k++) {
+                    if (sentlist[best_j].neg[k]) printf("!");
+                    printf("%s(", predlist[sentlist[best_j].pred[k]].name);
+                    for (int p = 0; p < predlist[sentlist[best_j].pred[k]].numparam; p++) {
+                        if (constant(sentlist[best_j].param[k][p])) 
+                            printf("%s", sentlist[best_j].param[k][p].con);
                         else 
-                            printf("%c", 'a' + (unsigned char)sentlist[j].param[k][p].var % 26);
-                        if (p < predlist[sentlist[j].pred[k]].numparam - 1) printf(",");
+                            printf("%c", 'a' + (unsigned char)sentlist[best_j].param[k][p].var % 26);
+                        if (p < predlist[sentlist[best_j].pred[k]].numparam - 1) printf(",");
                     }
                     printf(") ");
                 }
                 printf("\n--\n");
                 
-                hSteps++;  // Increment steps for each attempt
-                
-                // Try to unify
-                if (Unify(i, j)) {
+                if (Unify(i, best_j)) {
+                    found_resolution = 1;
                     sent_generated++;
                     
-                    // Check if we found a contradiction
                     if (sentlist[sentptr-1].num_pred == 0) {
-                        printf("Sentences %d and %d Complete the Proof!\n", i, j);
-                        free(tried);
+                        printf("Sentences %d and %d Complete the Proof!\n", i, best_j);
                         hTime = (double)(clock() - start) / CLOCKS_PER_SEC;
                         printf("HeuristicResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", 
                                sent_generated, hSteps, hTime);
                         return;
                     }
+                    
+                    // Reset tried matrix for new sentence
+                    for (int k = 0; k < sentptr; k++) {
+                        tried[sentptr-1][k] = tried[k][sentptr-1] = 0;
+                    }
                 }
             }
         }
-    }
-    
-    free(tried);
-    
-    if (sentptr >= MAXSENT) {
-        printf("FAILED to resolve! KB is FULL.\n");
-    } else if (sentptr == initial_sentptr) {
-        printf("FAILED to resolve! No more resolutions possible.\n");
+        
+        if (!found_resolution) {
+            printf("FAILED to resolve! No more resolutions possible.\n");
+            break;
+        }
+        
+        if (sentptr >= MAXSENT) {
+            printf("FAILED to resolve! KB is FULL.\n");
+            break;
+        }
     }
     
     hTime = (double)(clock() - start) / CLOCKS_PER_SEC;
     printf("HeuristicResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", 
            sent_generated, hSteps, hTime);
 }
+/* Helper function to check if two parameters can be unified */
+int canUnifyParams(Parameter param1, Parameter param2) {
+    // If both are constants, they must be identical
+    if (constant(param1) && constant(param2)) {
+        return strcmp(param1.con, param2.con) == 0;
+    }
+    
+    // If one is variable and other is constant, or both are variables
+    // They can be unified
+    return 1;
+}
 
+/* Helper function to check if two predicates can be unified */
+int canUnifyPredicates(int sent1, int pred1_idx, int sent2, int pred2_idx) {
+    int pred1 = sentlist[sent1].pred[pred1_idx];
+    int pred2 = sentlist[sent2].pred[pred2_idx];
+    
+    // Must be same predicate with opposite negation
+    if (pred1 != pred2 || 
+        sentlist[sent1].neg[pred1_idx] == sentlist[sent2].neg[pred2_idx]) {
+        return 0;
+    }
+    
+    // Check each parameter
+    for (int i = 0; i < predlist[pred1].numparam; i++) {
+        if (!canUnifyParams(sentlist[sent1].param[pred1_idx][i], 
+                          sentlist[sent2].param[pred2_idx][i])) {
+            return 0;
+        }
+    }
+    
+    return 1;
+}
 /* You must write this function */
 int Unify(int sent1, int sent2) {
     for (int i = 0; i < sentlist[sent1].num_pred; i++) {
@@ -525,9 +585,23 @@ int Unify(int sent1, int sent2) {
 
 /* You must write this function */
 void Resolve(void) {
-   RandomResolve();
-   HeuristicResolve();
-   printf("Heuristic vs Random ratios:  hSteps/rSteps = %lg, hTime/rTime = %lg\n\n",(double)hSteps/(double)rSteps, hTime/rTime);
+    // Save original KB state
+    int original_sentptr = sentptr;
+    Sentence original_sentlist[MAXSENT];
+    memcpy(original_sentlist, sentlist, sizeof(Sentence) * MAXSENT);
+    
+    // Run RandomResolve
+    RandomResolve();
+    
+    // Restore original KB state
+    sentptr = original_sentptr;
+    memcpy(sentlist, original_sentlist, sizeof(Sentence) * MAXSENT);
+    
+    // Run HeuristicResolve
+    HeuristicResolve();
+    
+    printf("Heuristic vs Random ratios:  hSteps/rSteps = %lg, hTime/rTime = %lg\n\n",
+           (double)hSteps/(double)rSteps, hTime/rTime);
 }
 
 /* User enters a the negation of their query.  This is added to KB, and then KB is resolved to find solution */
