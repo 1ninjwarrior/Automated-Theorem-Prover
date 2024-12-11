@@ -330,7 +330,6 @@ void RandomResolve()
    printf("RandomResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", sent_generated, rSteps, rTime);
 }
 
-/* You must write this function */
 void HeuristicResolve() {
     clock_t start = clock();
     hTime = 0.0;
@@ -380,7 +379,9 @@ void HeuristicResolve() {
             
             if (best_j != -1) {
                 tried[i][best_j] = tried[best_j][i] = 1;
-                hSteps++;
+                
+                // Add step counter here, just before attempting unification
+                hSteps++;  // Now it only counts actual resolution attempts
                 
                 // Print attempted resolution
                 printf("    %d:                               ", i);
@@ -454,9 +455,6 @@ int canUnifyParams(Parameter param1, Parameter param2) {
     if (constant(param1) && constant(param2)) {
         return strcmp(param1.con, param2.con) == 0;
     }
-    
-    // If one is variable and other is constant, or both are variables
-    // They can be unified
     return 1;
 }
 
@@ -481,7 +479,7 @@ int canUnifyPredicates(int sent1, int pred1_idx, int sent2, int pred2_idx) {
     
     return 1;
 }
-/* You must write this function */
+
 int Unify(int sent1, int sent2) {
     for (int i = 0; i < sentlist[sent1].num_pred; i++) {
         int pred1 = sentlist[sent1].pred[i];
