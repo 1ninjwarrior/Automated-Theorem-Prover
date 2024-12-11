@@ -322,9 +322,7 @@ void RandomResolve()
       }
    }
 
-   if (sentptr >= MAXSENT) {
-      printf("FAILED to resolve! KB is FULL.\n");
-   } else if (sentptr == initial_sentptr) {
+   if (!(sentptr >= MAXSENT) && sentptr == initial_sentptr) {
       printf("FAILED to resolve! There are no more possible resolutions.\n");
    }
 
