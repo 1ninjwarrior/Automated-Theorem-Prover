@@ -264,90 +264,107 @@ void AddKBSentence(void) {
 }
 
 /* You must write this function */
-void RandomResolve()
-{
-   clock_t start = clock();
-   rTime = 0.0;
-   rSteps = 0;
-   int sent_generated = 0;
-   int initial_sentptr = sentptr;
-   int max_attempts = 1000;
-   int attempts = 0;
-   int tried[MAXSENT][MAXSENT] = {0}; 
+void RandomResolve() {
+    clock_t start = clock();
+    rTime = 0.0;
+    rSteps = 0;
+    int sent_generated = 0;
+    int initial_sentptr = sentptr;
+    int max_attempts = 1000;
+    int attempts = 0;
 
-   printf("\nRunning Random Resolve (press Ctrl-c to cancel)...\n");
+    // Dynamically allocate `tried` array
+    int **tried = malloc(MAXSENT * sizeof(int *));
+    if (!tried) {
+        fprintf(stderr, "Memory allocation failed for 'tried'.\n");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < MAXSENT; i++) {
+        tried[i] = calloc(MAXSENT, sizeof(int));
+        if (!tried[i]) {
+            fprintf(stderr, "Memory allocation failed for 'tried[%d]'.\n", i);
+            exit(EXIT_FAILURE);
+        }
+    }
 
-   while (sentptr < MAXSENT && attempts < max_attempts) {
-      // Randomly select two sentences
-      int sent1 = rand() % sentptr;
-      int sent2 = rand() % sentptr;
+    printf("\nRunning Random Resolve (press Ctrl-c to cancel)...\n");
 
-      // Skip if same sentence or already tried
-      if (sent1 == sent2 || tried[sent1][sent2]) {
-         attempts++;
-         continue;
-      }
+    while (sentptr < MAXSENT && attempts < max_attempts) {
+        // Randomly select two sentences
+        int sent1 = rand() % sentptr;
+        int sent2 = rand() % sentptr;
 
-      // Mark this combination as tried
-      tried[sent1][sent2] = tried[sent2][sent1] = 1;
-      attempts++;
+        // Skip if same sentence or already tried
+        if (sent1 == sent2 || tried[sent1][sent2]) {
+            attempts++;
+            continue;
+        }
 
-      // Try to unify and resolve
-      if (Unify(sent1, sent2)) {
-         rSteps++;
-         sent_generated++;
-         attempts = 0; 
+        // Mark this combination as tried
+        tried[sent1][sent2] = tried[sent2][sent1] = 1;
+        attempts++;
 
-         // Print the selected sentences
-         printf("    %d:                               ", sent1);
-         for (int i = 0; i < sentlist[sent1].num_pred; i++) {
-            if (sentlist[sent1].neg[i]) printf("!");
-            printf("%s(", predlist[sentlist[sent1].pred[i]].name);
-            for (int j = 0; j < predlist[sentlist[sent1].pred[i]].numparam; j++) {
-               if (constant(sentlist[sent1].param[i][j])) 
-                  printf("%s", sentlist[sent1].param[i][j].con);
-               else 
-                  printf("%c", 'a' + (unsigned char)sentlist[sent1].param[i][j].var % 26);
-               if (j < predlist[sentlist[sent1].pred[i]].numparam - 1) printf(",");
+        // Try to unify and resolve
+        if (Unify(sent1, sent2)) {
+            rSteps++;
+            sent_generated++;
+            attempts = 0;
+
+            // Print the selected sentences
+            printf("    %d:                               ", sent1);
+            for (int i = 0; i < sentlist[sent1].num_pred; i++) {
+                if (sentlist[sent1].neg[i]) printf("!");
+                printf("%s(", predlist[sentlist[sent1].pred[i]].name);
+                for (int j = 0; j < predlist[sentlist[sent1].pred[i]].numparam; j++) {
+                    if (constant(sentlist[sent1].param[i][j]))
+                        printf("%s", sentlist[sent1].param[i][j].con);
+                    else
+                        printf("%c", 'a' + (unsigned char)sentlist[sent1].param[i][j].var % 26);
+                    if (j < predlist[sentlist[sent1].pred[i]].numparam - 1) printf(",");
+                }
+                printf(") ");
             }
-            printf(") ");
-         }
-         printf("\n");
+            printf("\n");
 
-         printf("    %d:                               ", sent2);
-         for (int i = 0; i < sentlist[sent2].num_pred; i++) {
-            if (sentlist[sent2].neg[i]) printf("!");
-            printf("%s(", predlist[sentlist[sent2].pred[i]].name);
-            for (int j = 0; j < predlist[sentlist[sent2].pred[i]].numparam; j++) {
-               if (constant(sentlist[sent2].param[i][j])) 
-                  printf("%s", sentlist[sent2].param[i][j].con);
-               else 
-                  printf("%c", 'a' + (unsigned char)sentlist[sent2].param[i][j].var % 26);
-               if (j < predlist[sentlist[sent2].pred[i]].numparam - 1) printf(",");
+            printf("    %d:                               ", sent2);
+            for (int i = 0; i < sentlist[sent2].num_pred; i++) {
+                if (sentlist[sent2].neg[i]) printf("!");
+                printf("%s(", predlist[sentlist[sent2].pred[i]].name);
+                for (int j = 0; j < predlist[sentlist[sent2].pred[i]].numparam; j++) {
+                    if (constant(sentlist[sent2].param[i][j]))
+                        printf("%s", sentlist[sent2].param[i][j].con);
+                    else
+                        printf("%c", 'a' + (unsigned char)sentlist[sent2].param[i][j].var % 26);
+                    if (j < predlist[sentlist[sent2].pred[i]].numparam - 1) printf(",");
+                }
+                printf(") ");
             }
-            printf(") ");
-         }
-         printf("\n--\n");
+            printf("\n--\n");
 
-         // Check if we found a contradiction
-         if (sentlist[sentptr-1].num_pred == 0) {
-            printf("Sentences %d and %d Complete the Proof!\n", sent1, sent2);
-            break;
-         }
-      }
-   }
+            // Check if we found a contradiction
+            if (sentlist[sentptr - 1].num_pred == 0) {
+                printf("Sentences %d and %d Complete the Proof!\n", sent1, sent2);
+                break;
+            }
+        }
+    }
 
-   if (attempts >= max_attempts) {
-      printf("FAILED to resolve! Maximum attempts reached without finding a solution.\n");
-   } else if (sentptr >= MAXSENT) {
-      printf("FAILED to resolve! KB is FULL.\n");
-   } else if (sentptr == initial_sentptr) {
-      printf("FAILED to resolve! There are no more possible resolutions.\n");
-   }
+    if (attempts >= max_attempts) {
+        printf("FAILED to resolve! Maximum attempts reached without finding a solution.\n");
+    } else if (sentptr >= MAXSENT) {
+        printf("FAILED to resolve! KB is FULL.\n");
+    } else if (sentptr == initial_sentptr) {
+        printf("FAILED to resolve! There are no more possible resolutions.\n");
+    }
 
-   rTime = (double)(clock() - start) / CLOCKS_PER_SEC;
-   printf("RandomResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", 
-          sent_generated, rSteps, rTime);
+    rTime = (double)(clock() - start) / CLOCKS_PER_SEC;
+    printf("RandomResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", 
+           sent_generated, rSteps, rTime);
+
+    for (int i = 0; i < MAXSENT; i++) {
+        free(tried[i]);
+    }
+    free(tried);
 }
 
 void HeuristicResolve() {
@@ -469,34 +486,13 @@ void HeuristicResolve() {
     printf("HeuristicResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", 
            sent_generated, hSteps, hTime);
 }
+
 /* Helper function to check if two parameters can be unified */
 int canUnifyParams(Parameter param1, Parameter param2) {
     // If both are constants, they must be identical
     if (constant(param1) && constant(param2)) {
         return strcmp(param1.con, param2.con) == 0;
     }
-    return 1;
-}
-
-/* Helper function to check if two predicates can be unified */
-int canUnifyPredicates(int sent1, int pred1_idx, int sent2, int pred2_idx) {
-    int pred1 = sentlist[sent1].pred[pred1_idx];
-    int pred2 = sentlist[sent2].pred[pred2_idx];
-    
-    // Must be same predicate with opposite negation
-    if (pred1 != pred2 || 
-        sentlist[sent1].neg[pred1_idx] == sentlist[sent2].neg[pred2_idx]) {
-        return 0;
-    }
-    
-    // Check each parameter
-    for (int i = 0; i < predlist[pred1].numparam; i++) {
-        if (!canUnifyParams(sentlist[sent1].param[pred1_idx][i], 
-                          sentlist[sent2].param[pred2_idx][i])) {
-            return 0;
-        }
-    }
-    
     return 1;
 }
 

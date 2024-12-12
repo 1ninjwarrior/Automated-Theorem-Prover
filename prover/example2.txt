@@ -1,0 +1,5 @@
+!CS(x) WorksHarder(x,y)   
+!WorksHarder(x,y) LessSleep(x,y)  
+CS(Maria)    
+
+!LessSleep(Maria,y)  

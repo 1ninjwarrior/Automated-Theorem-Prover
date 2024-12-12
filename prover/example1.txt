@@ -1,0 +1,5 @@
+!Ambassador(x) !SpeaksTo(x,y) Diplomat(y)  
+Ambassador(John)    
+SpeaksTo(John,Bob) 
+
+!Diplomat(Bob)
