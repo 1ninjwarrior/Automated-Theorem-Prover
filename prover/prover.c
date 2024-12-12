@@ -110,6 +110,10 @@ void Standardize(char param[MAXPRED][MAXPARAM][16], Parameter sparam[MAXPRED][MA
 void AddSentence(int neg[MAXPRED],int pred[MAXPRED], char param[MAXPRED][MAXPARAM][16], int snum, char *leftover) {
    int i;
 
+   if (sentptr >= MAXSENT) {
+       return;
+   }
+
    Standardize(param,sentlist[sentptr].param,pred,snum);
    for(i=0; i<snum; i++) {
       sentlist[sentptr].pred[i] = pred[i];
@@ -267,21 +271,32 @@ void RandomResolve()
    rSteps = 0;
    int sent_generated = 0;
    int initial_sentptr = sentptr;
+   int max_attempts = 1000;
+   int attempts = 0;
+   int tried[MAXSENT][MAXSENT] = {0}; 
 
    printf("\nRunning Random Resolve (press Ctrl-c to cancel)...\n");
 
-   while (sentptr < MAXSENT) {
+   while (sentptr < MAXSENT && attempts < max_attempts) {
       // Randomly select two sentences
       int sent1 = rand() % sentptr;
       int sent2 = rand() % sentptr;
 
-      // Skip if same sentence
-      if (sent1 == sent2) continue;
+      // Skip if same sentence or already tried
+      if (sent1 == sent2 || tried[sent1][sent2]) {
+         attempts++;
+         continue;
+      }
+
+      // Mark this combination as tried
+      tried[sent1][sent2] = tried[sent2][sent1] = 1;
+      attempts++;
 
       // Try to unify and resolve
       if (Unify(sent1, sent2)) {
          rSteps++;
          sent_generated++;
+         attempts = 0; 
 
          // Print the selected sentences
          printf("    %d:                               ", sent1);
@@ -322,12 +337,17 @@ void RandomResolve()
       }
    }
 
-   if (!(sentptr >= MAXSENT) && sentptr == initial_sentptr) {
+   if (attempts >= max_attempts) {
+      printf("FAILED to resolve! Maximum attempts reached without finding a solution.\n");
+   } else if (sentptr >= MAXSENT) {
+      printf("FAILED to resolve! KB is FULL.\n");
+   } else if (sentptr == initial_sentptr) {
       printf("FAILED to resolve! There are no more possible resolutions.\n");
    }
 
    rTime = (double)(clock() - start) / CLOCKS_PER_SEC;
-   printf("RandomResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", sent_generated, rSteps, rTime);
+   printf("RandomResolve: #sent-generated = %d, #steps = %d, time = %lg\n\n", 
+          sent_generated, rSteps, rTime);
 }
 
 void HeuristicResolve() {
@@ -381,7 +401,7 @@ void HeuristicResolve() {
                 tried[i][best_j] = tried[best_j][i] = 1;
                 
                 // Add step counter here, just before attempting unification
-                hSteps++;  // Now it only counts actual resolution attempts
+                hSteps++;
                 
                 // Print attempted resolution
                 printf("    %d:                               ", i);
@@ -481,6 +501,9 @@ int canUnifyPredicates(int sent1, int pred1_idx, int sent2, int pred2_idx) {
 }
 
 int Unify(int sent1, int sent2) {
+    if (sent1 < 0 || sent1 >= sentptr || sent2 < 0 || sent2 >= sentptr) {
+        return 0;
+    }
     for (int i = 0; i < sentlist[sent1].num_pred; i++) {
         int pred1 = sentlist[sent1].pred[i];
         int neg1 = sentlist[sent1].neg[i];
